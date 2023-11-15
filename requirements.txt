@@ -1,0 +1,12 @@
+streamlit
+stardist
+csbdeep
+opencv-python
+imutils
+pandas
+tifffile
+numpy
+Pillow
+matplotlib
+scipy
+plotly
