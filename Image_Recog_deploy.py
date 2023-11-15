@@ -288,8 +288,8 @@ uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg"
 
 
 # multi scale template matching for finding th size of the scale
-template1 = cv2.imread(r'X:\FB4\BIO_VT\06_FG_Spadiut\4_Personal_folders\Interns and Students\LKE\Data\Stardist_Test_Dataset\Scale Images\uncontinuous_scale.tiff', cv2.IMREAD_GRAYSCALE)
-template2 = cv2.imread(r'X:\FB4\BIO_VT\06_FG_Spadiut\4_Personal_folders\Interns and Students\LKE\Data\Stardist_Test_Dataset\Scale Images\continuous_scale.tiff', cv2.IMREAD_GRAYSCALE)
+template1 = cv2.imread(r'uncontinuous_scale.tiff', cv2.IMREAD_GRAYSCALE)
+template2 = cv2.imread(r'continuous_scale.tiff', cv2.IMREAD_GRAYSCALE)
 # st.sidebar.write(template1)
 
 # Display the templates on the sidebar
