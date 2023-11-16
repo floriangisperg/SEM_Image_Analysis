@@ -10,3 +10,4 @@ Pillow
 matplotlib
 scipy
 plotly
+tensorflow

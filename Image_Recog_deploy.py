@@ -1,11 +1,11 @@
 import streamlit as st
 from stardist.models import StarDist2D
 from stardist import random_label_cmap
-from csbdeep.utils import normalize
+from pyvis.network import Network
+from scipy.ndimage import label
 import cv2
-import imutils
-import pandas as pd
-from tifffile import imread
+import imutils#
+import networkx as nx
 import numpy as np
 from PIL import Image
 from io import BytesIO
@@ -177,9 +177,6 @@ def display_prediction():
 def display_selected_labels(adjusted_object_sizes):
     cmap = random_label_cmap()
 
-    # st.write(st.session_state['x_range'][0],st.session_state['x_range'][1])
-
-
     labels_int = [indice for value, indice in adjusted_object_sizes]
 
     # Create a labeled objects array with only the selected objects within the specified size range
@@ -198,24 +195,29 @@ def display_selected_labels(adjusted_object_sizes):
     y_contour_select = []
     text_select = []
 
+
     for i in labels_int:
         # filtered_labeled_objects[labels == idx] = i
-        x_center_select.append(st.session_state['details']['points'][i][1])
-        y_center_select.append(st.session_state['details']['points'][i][0])
-        x_contour_select.append(st.session_state['details']['coord'][i][1])
-        y_contour_select.append(st.session_state['details']['coord'][i][0])
-        # text_select.append(object_sizes[i])
+        x_center_select.append(st.session_state['details']['points'][i-1][1])
+        y_center_select.append(st.session_state['details']['points'][i-1][0])
+        x_contour_select.append(st.session_state['details']['coord'][i-1][1])
+        y_contour_select.append(st.session_state['details']['coord'][i-1][0])
+
+        #iterating through adjusted_object_sizes to find the corresponding object size
+        for value, indice in adjusted_object_sizes:
+            if indice == i:
+                text_select.append(value)
 
     # plot object sizes ontop of objects
-    # for x, y, text in zip(x_select, y_select, text_select):
-    #     ax.text(x, y, text, fontsize=10, color='red')
+    for x, y, text in zip(x_center_select, y_center_select, text_select):
+        ax.text(x, y, text, fontsize=10, color='red')
 
     ax.axis('off')
 
     # Display the figure in Streamlit
     st.pyplot(fig, use_container_width=True, clear_figure=True)
 
-    return x_center_select, y_center_select, x_contour_select, y_contour_select
+    return x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects
 
 
 @st.cache_data
@@ -284,12 +286,12 @@ def extract_non_outliers(list):
 st.set_page_config(layout="wide")
 # Sidebar
 st.sidebar.header("Image Processing")
-uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png", "tif"])
+uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png", "tif"], on_change=st.cache_data.clear())
 
 
 # multi scale template matching for finding th size of the scale
-template1 = cv2.imread(r'uncontinuous_scale.tiff', cv2.IMREAD_GRAYSCALE)
-template2 = cv2.imread(r'continuous_scale.tiff', cv2.IMREAD_GRAYSCALE)
+template1 = cv2.imread(r'X:\FB4\BIO_VT\06_FG_Spadiut\4_Personal_folders\Interns and Students\LKE\Data\Stardist_Test_Dataset\Scale Images\uncontinuous_scale.tiff', cv2.IMREAD_GRAYSCALE)
+template2 = cv2.imread(r'X:\FB4\BIO_VT\06_FG_Spadiut\4_Personal_folders\Interns and Students\LKE\Data\Stardist_Test_Dataset\Scale Images\continuous_scale.tiff', cv2.IMREAD_GRAYSCALE)
 # st.sidebar.write(template1)
 
 # Display the templates on the sidebar
@@ -361,7 +363,7 @@ try:
             with col3:
                 st.subheader("Selected Prediction Mask")
 
-                x_center_select, y_center_select, x_contour_select, y_contour_select = display_selected_labels(adjusted_object_sizes)
+                x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects = display_selected_labels(adjusted_object_sizes)
 
 
 
@@ -402,15 +404,15 @@ try:
                 filtered_std.append(object_diameters_std[i])
 
 
-            column1, column2 = st.columns(2)
+            column1, column2, column3 = st.columns(3)
 
             with column1:
 
                 # Display a bar plot
                 fig, ax = plt.subplots()
-                x = np.arange(len(object_diameters_average))
+                x = np.arange(len(values_adjusted_object_sizes))
 
-                plt.bar(x, object_diameters_average, yerr=object_diameters_std, align='center', alpha=0.5, ecolor='black', capsize=2, error_kw={'elinewidth': 0.8})
+                plt.bar(x, filtered_object_diameters_average, yerr=filtered_std, align='center', alpha=0.5, ecolor='black', capsize=2, error_kw={'elinewidth': 0.8})
                 plt.xlabel('Object Nr.')
                 plt.ylabel('Diameter in µm')
                 plt.title('Average IB Diameter in µm')
@@ -435,6 +437,85 @@ try:
                 plt.grid()
 
                 st.pyplot(fig)
+
+
+
+            with column3:
+
+                #1
+                # Apply connected components labeling
+                # filtered_labeled_objects_u8 = filtered_labeled_objects.astype(np.uint8)
+                # _, labeled_image = cv2.connectedComponents(filtered_labeled_objects_u8)
+                labeled_image = filtered_labeled_objects
+                # Print labeled image
+                # st.write("Labeled Image:")
+                # st.write(labeled_image)
+
+
+                #2
+
+                # Create a graph from labeled image
+                G = nx.Graph()
+
+                # Iterate through the image to add edges based on connectivity
+                for i in range(labeled_image.shape[0]):
+                    for j in range(labeled_image.shape[1]):
+                        current_label = labeled_image[i, j]
+                        if current_label != 0:  # Skip background
+                            neighbors = [(i + 1, j), (i, j + 1), (i - 1, j), (i, j - 1)]
+                            for ni, nj in neighbors:
+                                if 0 <= ni < labeled_image.shape[0] and 0 <= nj < labeled_image.shape[1]:
+                                    neighbor_label = labeled_image[ni, nj]
+                                    if neighbor_label != 0 and neighbor_label != current_label:
+                                        G.add_edge(current_label, neighbor_label)
+
+                # Calculate the degree of each node
+                degrees = dict(G.degree())
+
+                # Identify the largest connected components
+                largest_components = max(nx.connected_components(G), key=len)
+
+                # Count the number of isolated nodes
+                isolated_nodes = len([n for n, d in degrees.items() if d == 0])
+
+
+                # Create a pyvis Network object
+                net = Network(notebook=True)
+
+                # Add nodes to the graph
+                for node in G.nodes:
+                    net.add_node(node)
+
+                # Add edges to the graph
+                for edge in G.edges:
+                    net.add_edge(edge[0], edge[1])
+
+                # Save the graph as an HTML file
+                html_file = "graph.html"
+                net.show(html_file)
+
+                # Display the graph in the Streamlit app
+                st.components.v1.html(open(html_file, 'r').read(), width=700, height=700, scrolling=True)
+
+                # Display the analysis results
+                st.write("Degrees of nodes:", degrees)
+                st.write("Largest connected components:", largest_components)
+                st.write("Number of isolated nodes:", isolated_nodes)
+
+
+
+                #3
+                # Apply connected components labeling
+                _, labeled_image = label(filtered_labeled_objects)
+
+                # Count the number of objects touching each object
+                touching_count = {}
+                for i in range(1, labeled_image.max() + 1):
+                    touching_objects = np.unique(labeled_image[labeled_image == i - 1] - 1)
+                    touching_count[i] = len(touching_objects) - 1  # Subtract 1 to exclude background
+
+                st.write("Number of touching objects for each object:")
+                st.write(touching_count)
 
 
 
