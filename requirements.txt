@@ -11,3 +11,5 @@ matplotlib
 scipy
 plotly
 tensorflow
+pyvis
+networkx
