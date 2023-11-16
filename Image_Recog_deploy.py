@@ -444,78 +444,87 @@ try:
 
                 #1
                 # Apply connected components labeling
-                # filtered_labeled_objects_u8 = filtered_labeled_objects.astype(np.uint8)
-                # _, labeled_image = cv2.connectedComponents(filtered_labeled_objects_u8)
-                labeled_image = filtered_labeled_objects
-                # Print labeled image
-                # st.write("Labeled Image:")
-                # st.write(labeled_image)
-
+                filtered_labeled_objects_u8 = filtered_labeled_objects.astype(np.uint8)
+                _, labeled_image = cv2.connectedComponents(filtered_labeled_objects_u8)
+                st.write(labeled_image)
 
                 #2
-
                 # Create a graph from labeled image
                 G = nx.Graph()
 
                 # Iterate through the image to add edges based on connectivity
-                for i in range(labeled_image.shape[0]):
-                    for j in range(labeled_image.shape[1]):
+                for i in range(filtered_labeled_objects.shape[0]):
+                    for j in range(filtered_labeled_objects.shape[1]):
                         current_label = labeled_image[i, j]
                         if current_label != 0:  # Skip background
                             neighbors = [(i + 1, j), (i, j + 1), (i - 1, j), (i, j - 1)]
                             for ni, nj in neighbors:
-                                if 0 <= ni < labeled_image.shape[0] and 0 <= nj < labeled_image.shape[1]:
+                                if 0 <= ni < filtered_labeled_objects.shape[0] and 0 <= nj < filtered_labeled_objects.shape[1]:
                                     neighbor_label = labeled_image[ni, nj]
                                     if neighbor_label != 0 and neighbor_label != current_label:
                                         G.add_edge(current_label, neighbor_label)
 
-                # Calculate the degree of each node
-                degrees = dict(G.degree())
+                # Plot the graph
+                pos = nx.spring_layout(G)
+                nx.draw(G, pos, with_labels=True, font_weight='bold')
+                st.pyplot()
 
-                # Identify the largest connected components
-                largest_components = max(nx.connected_components(G), key=len)
+                # Degree distribution
+                degree_sequence = sorted([d for n, d in G.degree()], reverse=True)
+                st.write("This is the Degree: ", degree_sequence)
+
+
+                # Connected components
+                connected_components = list(nx.connected_components(G))
+                st.wrtie("These are the connected components: ", connected_components)
+
+                # Centrality measures
+                degree_centrality = nx.degree_centrality(G)
+                st.write("This is the centrelatiy measure: ", degree_centrality)
 
                 # Count the number of isolated nodes
                 isolated_nodes = len([n for n, d in degrees.items() if d == 0])
+                st.write("This is the number of isolated nodes: ", isolated_nodes)
 
 
-                # Create a pyvis Network object
-                net = Network(notebook=True)
 
-                # Add nodes to the graph
-                for node in G.nodes:
-                    net.add_node(node)
-
-                # Add edges to the graph
-                for edge in G.edges:
-                    net.add_edge(edge[0], edge[1])
-
-                # Save the graph as an HTML file
-                html_file = "graph.html"
-                net.show(html_file)
-
-                # Display the graph in the Streamlit app
-                st.components.v1.html(open(html_file, 'r').read(), width=700, height=700, scrolling=True)
-
-                # Display the analysis results
-                st.write("Degrees of nodes:", degrees)
-                st.write("Largest connected components:", largest_components)
-                st.write("Number of isolated nodes:", isolated_nodes)
+                # # Create a pyvis Network object
+                # net = Network(notebook=True)
+                #
+                # # Add nodes to the graph
+                # for node in G.nodes:
+                #     net.add_node(node)
+                #
+                # # Add edges to the graph
+                # for edge in G.edges:
+                #     net.add_edge(edge[0], edge[1])
+                #
+                # # Save the graph as an HTML file
+                # html_file = "graph.html"
+                # net.show(html_file)
+                #
+                # # Display the graph in the Streamlit app
+                # st.components.v1.html(open(html_file, 'r').read(), width=700, height=700, scrolling=True)
+                #
+                # # Display the analysis results
+                # st.write("Degrees of nodes:", degrees)
+                # st.write("Largest connected components:", largest_components)
+                # st.write("Number of isolated nodes:", isolated_nodes)
 
 
 
                 #3
                 # Apply connected components labeling
-                _, labeled_image = label(filtered_labeled_objects)
-
-                # Count the number of objects touching each object
-                touching_count = {}
-                for i in range(1, labeled_image.max() + 1):
-                    touching_objects = np.unique(labeled_image[labeled_image == i - 1] - 1)
-                    touching_count[i] = len(touching_objects) - 1  # Subtract 1 to exclude background
-
-                st.write("Number of touching objects for each object:")
-                st.write(touching_count)
+                # _, labeled_image = label(filtered_labeled_objects)
+                #
+                # # Count the number of objects touching each object
+                # touching_count = {}
+                # for i in range(1, labeled_image.max() + 1):
+                #     touching_objects = np.unique(labeled_image[labeled_image == i - 1] - 1)
+                #     touching_count[i] = len(touching_objects) - 1  # Subtract 1 to exclude background
+                #
+                # st.write("Number of touching objects for each object:")
+                # st.write(touching_count)
 
 
 
