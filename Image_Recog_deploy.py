@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import math
 from scipy.ndimage import label, find_objects
 import plotly.figure_factory as ff
+from collections import Counter
+
 
 # Function to process and convert image to .tif and resize if necessary
 @st.cache_data
@@ -282,6 +284,66 @@ def extract_non_outliers(list):
     return filtered_data, filtered_indices
 
 
+@st.cache_data
+def agglomeration_degree(filtered_labeled_objects):
+    # 1
+    # Apply connected components labeling
+    filtered_labeled_objects_u8 = filtered_labeled_objects.astype(np.uint8)
+
+    # Assuming you have contours and the binary image with filled contour regions
+    contours, _ = cv2.findContours(filtered_labeled_objects_u8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # st.write(contours)
+
+    # Function to get neighboring values in an image
+    def get_neighbors(image, x, y):
+        return [image[y + dy, x + dx] for dy in [-1, 0, 1] for dx in [-1, 0, 1] if (dx != 0 or dy != 0)]
+
+    # Dictionary to store the number of touching objects and unique values for each contour
+    contour_info = {i: {'count': 0, 'unique_values': set()} for i in range(len(contours))}
+
+    # Iterate through each contour
+    for i, contour in enumerate(contours):  # Set to store unique non-zero values in the neighborhood
+        unique_values_set = set()
+
+        # Iterate through each point in the contour
+        for point in contour:
+            x, y = point[0]
+            # Add non-zero values to the set
+            neighbors = get_neighbors(filtered_labeled_objects, x, y)
+            unique_values_set.update(val for val in neighbors if val != 0)
+
+        # Store the count and unique values for the contour
+        contour_info[i]['count'] = len(unique_values_set)
+        contour_info[i]['unique_values'] = unique_values_set
+
+    # Extract counts for plotting
+    count_list = [info['count'] for info in contour_info.values()]
+
+    # Use Counter to count occurrences of each element in the list
+    occurrences = Counter(count_list)
+
+    # Get unique values and their counts
+    unique_values = list(occurrences.keys())
+    counts = list(occurrences.values())
+
+    # st.write(unique_values)
+    # st.write(counts)
+
+    # Plot histogram
+    fig, ax = plt.subplots()
+    plt.bar(unique_values, counts)
+    # plt.hist(counts, bins=len(set(counts)), align='left', edgecolor='black', alpha=0.7)
+    plt.xlabel('Number of Touching Objects')
+    plt.ylabel('Frequency')
+    plt.xticks(unique_values)
+    plt.title('Distribution of Agglomerate Sizes')
+    st.pyplot(fig)
+
+
+
+
+#---------------------------------------Start Page----------------------------------------------------------#
 
 st.set_page_config(layout="wide")
 # Sidebar
@@ -442,89 +504,8 @@ try:
 
             with column3:
 
-                #1
-                # Apply connected components labeling
-                filtered_labeled_objects_u8 = filtered_labeled_objects.astype(np.uint8)
-                _, labeled_image = cv2.connectedComponents(filtered_labeled_objects_u8)
-                st.write(labeled_image)
+                agglomeration_degree(filtered_labeled_objects)
 
-                #2
-                # Create a graph from labeled image
-                G = nx.Graph()
-
-                # Iterate through the image to add edges based on connectivity
-                for i in range(filtered_labeled_objects.shape[0]):
-                    for j in range(filtered_labeled_objects.shape[1]):
-                        current_label = labeled_image[i, j]
-                        if current_label != 0:  # Skip background
-                            neighbors = [(i + 1, j), (i, j + 1), (i - 1, j), (i, j - 1)]
-                            for ni, nj in neighbors:
-                                if 0 <= ni < filtered_labeled_objects.shape[0] and 0 <= nj < filtered_labeled_objects.shape[1]:
-                                    neighbor_label = labeled_image[ni, nj]
-                                    if neighbor_label != 0 and neighbor_label != current_label:
-                                        G.add_edge(current_label, neighbor_label)
-
-                # Plot the graph
-                pos = nx.spring_layout(G)
-                nx.draw(G, pos, with_labels=True, font_weight='bold')
-                st.pyplot()
-
-                # Degree distribution
-                degree_sequence = sorted([d for n, d in G.degree()], reverse=True)
-                st.write("This is the Degree: ", degree_sequence)
-
-
-                # Connected components
-                connected_components = list(nx.connected_components(G))
-                st.wrtie("These are the connected components: ", connected_components)
-
-                # Centrality measures
-                degree_centrality = nx.degree_centrality(G)
-                st.write("This is the centrelatiy measure: ", degree_centrality)
-
-                # Count the number of isolated nodes
-                isolated_nodes = len([n for n, d in degrees.items() if d == 0])
-                st.write("This is the number of isolated nodes: ", isolated_nodes)
-
-
-
-                # # Create a pyvis Network object
-                # net = Network(notebook=True)
-                #
-                # # Add nodes to the graph
-                # for node in G.nodes:
-                #     net.add_node(node)
-                #
-                # # Add edges to the graph
-                # for edge in G.edges:
-                #     net.add_edge(edge[0], edge[1])
-                #
-                # # Save the graph as an HTML file
-                # html_file = "graph.html"
-                # net.show(html_file)
-                #
-                # # Display the graph in the Streamlit app
-                # st.components.v1.html(open(html_file, 'r').read(), width=700, height=700, scrolling=True)
-                #
-                # # Display the analysis results
-                # st.write("Degrees of nodes:", degrees)
-                # st.write("Largest connected components:", largest_components)
-                # st.write("Number of isolated nodes:", isolated_nodes)
-
-
-
-                #3
-                # Apply connected components labeling
-                # _, labeled_image = label(filtered_labeled_objects)
-                #
-                # # Count the number of objects touching each object
-                # touching_count = {}
-                # for i in range(1, labeled_image.max() + 1):
-                #     touching_objects = np.unique(labeled_image[labeled_image == i - 1] - 1)
-                #     touching_count[i] = len(touching_objects) - 1  # Subtract 1 to exclude background
-                #
-                # st.write("Number of touching objects for each object:")
-                # st.write(touching_count)
 
 
 
