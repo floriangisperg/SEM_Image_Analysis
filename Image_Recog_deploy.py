@@ -137,7 +137,7 @@ def stardist(file, PBS, NMS):
                                                                                           nms_thresh=NMS)  # predicting masks
 
 @st.cache_data
-def display_prediction():
+def display_prediction(L_scale, scale):
     # find Contours
     contour_x = []
     contour_y = []
@@ -155,8 +155,8 @@ def display_prediction():
     # identify number of unique objects
     num_objects = len(st.session_state['details']['points'])
 
-    # Calculate the number of pixels in each object
-    object_sizes = [len(np.where(st.session_state['labels'] == i)[0]) for i in range(1, num_objects)]
+    # Calculate the number of pixels in each object and convert into actual area, using scale
+    object_sizes = [(len(np.where(st.session_state['labels'] == i)[0])*(scale/L_scale))**2 for i in range(1, num_objects)]
 
     # Create the overlaid image using Matplotlib with adjusted figure size
     cmap = random_label_cmap()
@@ -238,7 +238,7 @@ def plot_hist(object_sizes, num_objects):
 
     # Add the histogram in the subplot
     ax.hist(object_sizes, bins=bins, edgecolor='k')
-    ax.set_xlabel('Object Size (Number of Pixels)')
+    ax.set_xlabel('Object Size in µm^2')
     ax.set_ylabel('Occurence')
     ax.set_title('Histogram of Object Sizes')
 
@@ -398,11 +398,11 @@ try:
 
                 # st.write("This is Labels:",labels)
 
-                object_sizes, num_objects = display_prediction()
+                object_sizes, num_objects = display_prediction(st.session_state['scale_length'], st.session_state['mikro_scale'])
 
 
             st.subheader("Size Distribution")
-
+            st.markdown("You can adjust the number of bins to change the resolution of the size distribution.")
 
 
             max_bin = int(len(st.session_state['details']['points']))
@@ -410,6 +410,8 @@ try:
             min_x = min(object_sizes)
             step = int(max_bin / 2.5)
             st.session_state['bins'] = st.slider("Bins", 1, max_bin, step)
+
+            st.markdown("You can change the range of object sizes to be displayed.")
             st.session_state['x_range'] = st.slider("Size Range",value=[min_x,max_x])
 
 
@@ -493,7 +495,7 @@ try:
                 x = np.arange(len(object_diameters_average))
 
                 plt.scatter(values_adjusted_object_sizes, filtered_std)
-                plt.xlabel('Object Areas (Number of Pixels)')
+                plt.xlabel('Object Areas in µm^2')
                 plt.ylabel('Standard Deviation of Diameter Distribution in a Object in µm')
                 plt.title('Circularity to Area Plot')
                 plt.grid()
