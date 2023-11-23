@@ -156,7 +156,7 @@ def display_prediction(L_scale, scale):
     num_objects = len(st.session_state['details']['points'])
 
     # Calculate the number of pixels in each object and convert into actual area, using scale
-    object_sizes = [(len(np.where(st.session_state['labels'] == i)[0])*(scale/L_scale))**2 for i in range(1, num_objects)]
+    object_sizes = [round((len(np.where(st.session_state['labels'] == i)[0])*(scale/L_scale))**2,1) for i in range(1, num_objects)]
 
     # Create the overlaid image using Matplotlib with adjusted figure size
     cmap = random_label_cmap()
@@ -402,7 +402,7 @@ try:
 
 
             st.subheader("Size Distribution")
-            st.markdown("You can adjust the number of bins to change the resolution of the size distribution.")
+            st.markdown("You can adjust the number of bins to change the resolution of the size distribution and the range of object sizes to be displayed.")
 
 
             max_bin = int(len(st.session_state['details']['points']))
@@ -411,8 +411,7 @@ try:
             step = int(max_bin / 2.5)
             st.session_state['bins'] = st.slider("Bins", 1, max_bin, step)
 
-            st.markdown("You can change the range of object sizes to be displayed.")
-            st.session_state['x_range'] = st.slider("Size Range",value=[min_x,max_x])
+            st.session_state['x_range'] = st.slider("Size Range in µm^2",value=[min_x,max_x])
 
 
 
