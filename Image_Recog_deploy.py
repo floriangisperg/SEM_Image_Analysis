@@ -424,7 +424,7 @@ try:
 
 
             with col3:
-                st.subheader("Selected Prediction Mask")
+                st.subheader("Size Selected Prediction")
 
                 x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects = display_selected_labels(adjusted_object_sizes)
 
