@@ -127,7 +127,7 @@ def find_scale(selected_template, img, template1, template2):
 @st.cache_data
 def stardist(file, PBS, NMS):
 
-    model = StarDist2D.from_pretrained('2D_versatile_fluo') # loading model
+    model = StarDist2D.from_pretrained('Models\Stardist_Fluo_FineTuned.h5') # loading model
 
     try:
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
