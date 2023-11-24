@@ -156,7 +156,7 @@ def display_prediction(L_scale, scale):
     num_objects = len(st.session_state['details']['points'])
 
     # Calculate the number of pixels in each object and convert into actual area, using scale
-    object_sizes = [round(len(np.where(st.session_state['labels'] == i)[0])*((scale/L_scale)**2),1) for i in range(1, num_objects)]
+    object_sizes = [round(len(np.where(st.session_state['labels'] == i)[0])*((scale/L_scale)**2),3) for i in range(1, num_objects)]
 
     # Create the overlaid image using Matplotlib with adjusted figure size
     cmap = random_label_cmap()
