@@ -131,8 +131,8 @@ def stardist(file, PBS, NMS):
 
     try:
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
-    except AttributeError:
-        model = StarDist2D.from_pretrained('2D_versatile_fluo') # loading model
+    except Exception as e:
+        model = StarDist2D.from_pretrained('Models\Stardist_Fluo_FineTuned.h5') # loading model
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
                                                                                           nms_thresh=NMS)  # predicting masks
 
@@ -284,7 +284,7 @@ def extract_non_outliers(list):
     return filtered_data, filtered_indices
 
 
-@st.cache_data
+# @st.cache_data
 def agglomeration_degree(filtered_labeled_objects):
     # 1
     # Apply connected components labeling
