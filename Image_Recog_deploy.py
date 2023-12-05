@@ -128,7 +128,6 @@ def find_scale(selected_template, img, template1, template2):
 def stardist(file, PBS, NMS):
 
     model = StarDist2D(None, name = "FineTuned_v3", basedir='Models') # loading model
-
     try:
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
     except Exception as e:
