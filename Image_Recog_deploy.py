@@ -384,7 +384,7 @@ try:
                 st.subheader("Prediction")
                 # Input widgets in the sidebar
                 st.sidebar.header("Input Parameters")
-                st.session_state['PBS'] = st.sidebar.slider("Probability Score", 0.0, 1.0, 0.7)
+                st.session_state['PBS'] = st.sidebar.slider("Probability Score", 0.0, 1.0, 0.3)
                 st.session_state['NMS'] = st.sidebar.slider("NMS Score", 0.0, 1.0, 0.2)
 
                 # param3 = st.sidebar.slider("Parameter 3", 0.0, 1.0, 0.5)
