@@ -505,9 +505,9 @@ try:
 
 
 
-            with column3:
-
-                agglomeration_degree(filtered_labeled_objects, preprocessed_image)
+            # with column3:
+            #
+            #     agglomeration_degree(filtered_labeled_objects, preprocessed_image)
 
 
 
