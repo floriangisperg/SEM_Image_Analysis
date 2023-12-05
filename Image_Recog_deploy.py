@@ -132,7 +132,7 @@ def stardist(file, PBS, NMS):
     try:
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
     except Exception as e:
-        model = StarDist2D(None, name="Fine_Tuned", basedir='Models\Stardist_Fluo_FineTuned.h5')  # loading model
+        model = StarDist2D(None, name="Stardist_Fluo_FineTuned.h5", basedir='Models')  # loading model
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
                                                                                           nms_thresh=NMS)  # predicting masks
 
