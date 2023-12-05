@@ -298,7 +298,7 @@ def agglomeration_degree(filtered_labeled_objects, img):
     # Function to get neighboring values in an image
     height, width = img.shape
     def get_neighbors(image, x, y, height, width):
-        return [image[y + dy, x + dx] for dy in [-1, 0, 1] for dx in [-1, 0, 1] if ((x != 0 and x!=width and y != 0 and y!=height)and (dx != 0 or dy != 0)) ]
+        return [image[y + dy, x + dx] for dy in [-1, 0, 1] for dx in [-1, 0, 1] if (dx != 0 or dy != 0) ] # (x != 0 and x!=width and y != 0 and y!=height)and
 
     # Dictionary to store the number of touching objects and unique values for each contour
     contour_info = {i: {'count': 0, 'unique_values': set()} for i in range(len(contours))}
@@ -310,6 +310,7 @@ def agglomeration_degree(filtered_labeled_objects, img):
         # Iterate through each point in the contour
         for point in contour:
             x, y = point[0]
+            print(x,y)
             # Add non-zero values to the set
             neighbors = get_neighbors(filtered_labeled_objects, x, y, height, width)
             unique_values_set.update(val for val in neighbors if val != 0)
