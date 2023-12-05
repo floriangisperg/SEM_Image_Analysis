@@ -285,7 +285,8 @@ def extract_non_outliers(list):
 
 
 # @st.cache_data
-def agglomeration_degree(filtered_labeled_objects):
+def agglomeration_degree(filtered_labeled_objects, img):
+
     # 1
     # Apply connected components labeling
     filtered_labeled_objects_u8 = filtered_labeled_objects.astype(np.uint8)
@@ -296,8 +297,9 @@ def agglomeration_degree(filtered_labeled_objects):
     # st.write(contours)
 
     # Function to get neighboring values in an image
-    def get_neighbors(image, x, y):
-        return [image[y + dy, x + dx] for dy in [-1, 0, 1] for dx in [-1, 0, 1] if (dx != 0 or dy != 0)]
+    height, width = img.shape
+    def get_neighbors(image, x, y, height, width):
+        return [image[y + dy, x + dx] for dy in [-1, 0, 1] for dx in [-1, 0, 1] if (dx != 0 or dx!=width or dy != 0 or dy!=height)]
 
     # Dictionary to store the number of touching objects and unique values for each contour
     contour_info = {i: {'count': 0, 'unique_values': set()} for i in range(len(contours))}
@@ -310,7 +312,7 @@ def agglomeration_degree(filtered_labeled_objects):
         for point in contour:
             x, y = point[0]
             # Add non-zero values to the set
-            neighbors = get_neighbors(filtered_labeled_objects, x, y)
+            neighbors = get_neighbors(filtered_labeled_objects, x, y, height, width)
             unique_values_set.update(val for val in neighbors if val != 0)
 
         # Store the count and unique values for the contour
@@ -505,7 +507,7 @@ try:
 
             with column3:
 
-                agglomeration_degree(filtered_labeled_objects)
+                agglomeration_degree(filtered_labeled_objects, preprocessed_image)
 
 
 
