@@ -209,6 +209,10 @@ def display_selected_labels(adjusted_object_sizes):
             if indice == i:
                 text_select.append(value)
 
+
+    object_diameters = []
+    object_diameters_average = []
+
     # iterating through the centerpoints and contours of the already filtered label data
     for i, (x_center, y_center) in enumerate(zip(x_center_select, y_center_select)):
         diameters = []
