@@ -175,7 +175,7 @@ def display_prediction(L_scale, scale):
 
 
 @st.cache_data
-def display_selected_labels(adjusted_object_sizes):
+def display_selected_labels(adjusted_object_sizes, toggle):
     cmap = random_label_cmap()
 
     labels_int = [indice for value, indice in adjusted_object_sizes]
@@ -222,9 +222,12 @@ def display_selected_labels(adjusted_object_sizes):
         object_diameters.append(diameters)
         object_diameters_average.append(round(np.average(diameters),3))
 
-
+    if toggle:
+        text_output = text_select
+    else:
+        text_output = object_diameters_average
     # plot object sizes ontop of objects
-    for x, y, text in zip(x_center_select, y_center_select, object_diameters_average):
+    for x, y, text in zip(x_center_select, y_center_select, text_output):
         ax.text(x, y, text, fontsize=10, color='red')
 
     ax.axis('off')
@@ -393,6 +396,8 @@ try:
                 preprocessed_image = process_image(uploaded_image)
 
                 st.session_state['scale_length'] = find_scale(selected_template, preprocessed_image, template1, template2)
+
+                area_diameter = st.toggle('Turn on for Area \nTurn off for Diameter')
                 # st.image(preprocessed_image, use_column_width=True)
 
             with col2:
@@ -442,7 +447,7 @@ try:
             with col3:
                 st.subheader("Size Selected Prediction")
 
-                x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects = display_selected_labels(adjusted_object_sizes)
+                x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects = display_selected_labels(adjusted_object_sizes, area_diameter)
 
 
 
