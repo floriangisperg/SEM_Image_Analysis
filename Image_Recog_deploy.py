@@ -220,7 +220,7 @@ def display_selected_labels(adjusted_object_sizes):
             diameter = 2 * calculate_distance(x_center, y_center, x_contour, y_contour)
             diameters.append(1 / (st.session_state['scale_length'] / (st.session_state['mikro_scale'] * diameter)))
         object_diameters.append(diameters)
-        object_diameters_average.append(np.average(diameters))
+        object_diameters_average.append(round(np.average(diameters),3))
 
 
     # plot object sizes ontop of objects
