@@ -397,7 +397,8 @@ try:
 
                 st.session_state['scale_length'] = find_scale(selected_template, preprocessed_image, template1, template2)
 
-                area_diameter = st.toggle('Turn on for Area \nTurn off for Diameter')
+                st.write("Switch values in Size selected Prediction")
+                area_diameter = st.toggle('Turn off for Diameter | Turn on for Area')
                 # st.image(preprocessed_image, use_column_width=True)
 
             with col2:
