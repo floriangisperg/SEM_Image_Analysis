@@ -209,8 +209,18 @@ def display_selected_labels(adjusted_object_sizes):
             if indice == i:
                 text_select.append(value)
 
+    # iterating through the centerpoints and contours of the already filtered label data
+    for i, (x_center, y_center) in enumerate(zip(x_center_select, y_center_select)):
+        diameters = []
+        for j, (x_contour, y_contour) in enumerate(zip(x_contour_select[i], y_contour_select[i])):
+            diameter = 2 * calculate_distance(x_center, y_center, x_contour, y_contour)
+            diameters.append(1 / (st.session_state['scale_length'] / (st.session_state['mikro_scale'] * diameter)))
+        object_diameters.append(diameters)
+        object_diameters_average.append(np.average(diameters))
+
+
     # plot object sizes ontop of objects
-    for x, y, text in zip(x_center_select, y_center_select, text_select):
+    for x, y, text in zip(x_center_select, y_center_select, object_diameters_average):
         ax.text(x, y, text, fontsize=10, color='red')
 
     ax.axis('off')
@@ -514,7 +524,7 @@ try:
 
             overall_average = np.average(object_diameters_average)
             overall_std = np.std(object_diameters_average)
-            st.write("Overall Average IB Diameter = ", overall_average)
+            st.write("Overall Average IB Diameter in µm = ", overall_average)
             st.write("Overall STD = ", overall_std)
 
 
