@@ -125,13 +125,19 @@ def find_scale(selected_template, img, template1, template2):
     return length
 
 @st.cache_data
-def stardist(file, PBS, NMS):
+def stardist(file, PBS, NMS, model_change):
 
-    model = StarDist2D(None, name = "FineTuned_v3", basedir='Models') # loading model
+    if model_change:
+        model = StarDist2D.from_pretrained('2D_versatile_fluo')
+    else:
+        model = StarDist2D(None, name = "FineTuned_v3", basedir='Models') # loading model
     try:
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
     except Exception as e:
-        model = StarDist2D(None, name="FineTuned_v3", basedir='Models')  # loading model
+        if model_change:
+            model = StarDist2D.from_pretrained('2D_versatile_fluo')
+        else:
+            model = StarDist2D(None, name="FineTuned_v3", basedir='Models')  # loading model
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
                                                                                           nms_thresh=NMS)  # predicting masks
 
@@ -392,13 +398,16 @@ try:
 
             col1, col2, col3 = st.columns(3)
             with col1:
+
                 st.subheader("Uploaded Image")
+
                 preprocessed_image = process_image(uploaded_image)
 
                 st.session_state['scale_length'] = find_scale(selected_template, preprocessed_image, template1, template2)
 
                 st.write("Switch values in Size selected Prediction")
                 area_diameter = st.toggle('Turn off for Diameter | Turn on for Area')
+                model_change = st.toggle("Turn off for new Model | Turn on for old Model")
                 # st.image(preprocessed_image, use_column_width=True)
 
             with col2:
@@ -415,7 +424,7 @@ try:
                 # predicting labels
                 # st.write(preprocessed_image)
                 # st.write(st.session_state['PBS'], st.session_state['NMS'])
-                stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'])
+                stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], model_change)
                 # labels,details = stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'])
 
                 # st.write("This is Labels:",labels)
