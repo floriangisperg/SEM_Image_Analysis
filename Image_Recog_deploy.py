@@ -419,6 +419,7 @@ try:
                 model_change = st.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
                 # st.image(preprocessed_image, use_column_width=True)
 
+
             with col2:
                 st.subheader("Prediction")
                 # Input widgets in the sidebar
