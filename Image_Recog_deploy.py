@@ -146,8 +146,7 @@ def stardist(file, PBS, NMS, model_change):
 
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
                                                                                           nms_thresh=NMS)  # predicting masks
-    # st.cache_resource.clear()
-    st.write("Cache cleared")
+
 
 
 
@@ -376,15 +375,14 @@ def agglomeration_degree(filtered_labeled_objects, img):
     st.pyplot(fig)
 
 
-def on_change_test():
-    st.cache_resource.clear()
-    st.sidebar.write("New_Image")
+
+
 #---------------------------------------Start Page----------------------------------------------------------#
 
 st.set_page_config(layout="wide")
 # Sidebar
 st.sidebar.header("Image Processing")
-uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png", "tif"], on_change=on_change_test())
+uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png", "tif"], on_change=st.cache_resource.clear())
 
 
 # multi scale template matching for finding th size of the scale
@@ -401,7 +399,6 @@ selected_template = st.sidebar.radio("Select a Template", ["Template 1", "Templa
 
 
 
-
 try:
     tab1, tab2 = st.tabs(["\u2001 \u2001\u2001 Analysis \u2001 \u2001 \u2001 ", "Results"])
     with tab1:
@@ -411,9 +408,9 @@ try:
             col1, col2, col3 = st.columns(3)
             with col1:
 
-                st.sidebar.write("Switch values in Size selected Prediction")
-                area_diameter = st.sidebar.toggle('Turn off for Diameter | Turn on for Area')
-                model_change = st.sidebar.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
+                st.write("Switch values in Size selected Prediction")
+                area_diameter = st.toggle('Turn off for Diameter | Turn on for Area')
+                model_change = st.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
 
                 st.subheader("Uploaded Image")
 
