@@ -146,7 +146,7 @@ def stardist(file, PBS, NMS, model_change):
 
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
                                                                                           nms_thresh=NMS)  # predicting masks
-    st.cache_resource.clear()
+    # st.cache_resource.clear()
     st.write("Cache cleared")
 
 
