@@ -97,7 +97,7 @@ def find_scale(selected_template, img, template1, template2):
     st.write(f'The length of the scale bar is {length} pixels.')
     return length
 
-@st.cache_resource
+# @st.cache_resource
 def model_select(model_change):
     if model_change == 'Basic':
         model = StarDist2D.from_pretrained('2D_versatile_fluo')
@@ -109,7 +109,7 @@ def model_select(model_change):
     return model
 
 
-@st.cache_resource
+# @st.cache_resource
 def stardist(file, PBS, NMS, model):
     try:
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
