@@ -413,7 +413,7 @@ try:
 
                 st.sidebar.write("Switch values in Size selected Prediction")
                 area_diameter = st.sidebar.toggle('Turn off for Diameter | Turn on for Area')
-                model_change = st.sidebar.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'), default)
+                model_change = st.sidebar.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
 
                 st.subheader("Uploaded Image")
 
