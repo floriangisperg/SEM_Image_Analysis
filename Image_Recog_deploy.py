@@ -99,16 +99,18 @@ def find_scale(selected_template, img, template1, template2):
 
 # @st.cache_resource
 def model_select(model_change):
+
     if model_change == 'Basic':
         model = StarDist2D.from_pretrained('2D_versatile_fluo')
+        return model
+
     elif model_change == 'Fine_Tuned':
         model = StarDist2D(None, name="FineTuned_v3", basedir='Models')  # loading model
+        return model
+
     elif model_change == 'Self_trained':
         model = StarDist2D(None, name="Self_Trained", basedir='Models')  # loading model
-    else:
-        model = None
-
-    return model
+        return model
 
 
 # @st.cache_resource
