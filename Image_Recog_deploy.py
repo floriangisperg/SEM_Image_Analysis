@@ -146,7 +146,8 @@ def stardist(file, PBS, NMS, model_change):
 
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
                                                                                           nms_thresh=NMS)  # predicting masks
-
+    st.cache_resource.clear()
+    st.write("Cache cleared")
 
 
 
@@ -398,8 +399,8 @@ st.sidebar.image(template2, caption='Template 2')
 selected_template = st.sidebar.radio("Select a Template", ["Template 1", "Template 2"])
 
 st.sidebar.write("Switch values in Size selected Prediction")
-area_diameter = st.sidebar.toggle('Turn off for Diameter | Turn on for Area')
-model_change = st.sidebar.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
+st.session_state['area_diameter'] = st.sidebar.toggle('Turn off for Diameter | Turn on for Area')
+st.session_state['model_change'] = st.sidebar.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
 
 
 
@@ -438,7 +439,7 @@ try:
                 # predicting labels
                 # st.write(preprocessed_image)
                 # st.write(st.session_state['PBS'], st.session_state['NMS'])
-                stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], model_change)
+                stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], st.session_state['model_change'])
                 # labels,details = stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'])
 
                 # st.write("This is Labels:",labels)
@@ -471,7 +472,7 @@ try:
             with col3:
                 st.subheader("Size Selected Prediction")
 
-                x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects = display_selected_labels(adjusted_object_sizes, area_diameter)
+                x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects = display_selected_labels(adjusted_object_sizes, st.session_state['area_diameter'])
 
 
 
