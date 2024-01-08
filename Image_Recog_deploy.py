@@ -384,7 +384,7 @@ def on_change_test():
 st.set_page_config(layout="wide")
 # Sidebar
 st.sidebar.header("Image Processing")
-uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png", "tif"], on_change=on_change_test())
+uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png", "tif"], )#on_change=on_change_test())
 
 
 # multi scale template matching for finding th size of the scale
