@@ -15,7 +15,7 @@ from scipy.ndimage import label, find_objects
 import plotly.figure_factory as ff
 from collections import Counter
 # Function to process and convert image to .tif and resize if necessary
-@st.cache_data
+#@st.cache_data
 def process_image(uploaded_image):
     # Check if an image is uploaded
     if uploaded_image:
@@ -39,7 +39,7 @@ def process_image(uploaded_image):
             new_width = int(width * scale)
             img = cv2.resize(img, (new_width, new_height))
         return img  # Return the temporary file path
-@st.cache_data
+#@st.cache_data
 def find_scale(selected_template, img, template1, template2):
     img = img.astype(np.float32)
     # Select the appropriate template
@@ -96,7 +96,7 @@ def find_scale(selected_template, img, template1, template2):
     st.image(img, caption='Detected scale bar', use_column_width=True, clamp=True)
     st.write(f'The length of the scale bar is {length} pixels.')
     return length
-@st.cache_data
+#@st.cache_data
 def stardist(file, PBS, NMS, model_change):
     if model_change == 'Basic':
         model = StarDist2D.from_pretrained('2D_versatile_fluo')
@@ -115,7 +115,7 @@ def stardist(file, PBS, NMS, model_change):
             model = StarDist2D(None, name="Self_Trained", basedir='Models')  # loading model
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
                                                                                           nms_thresh=NMS)  # predicting masks
-@st.cache_data
+#@st.cache_data
 def display_prediction(L_scale, scale):
     # find Contours
     contour_x = []
@@ -144,7 +144,7 @@ def display_prediction(L_scale, scale):
     # Specify a fixed size for the Matplotlib figure in col2
     st.pyplot(fig, use_container_width=True, clear_figure=True)
     return object_sizes, num_objects
-@st.cache_data
+#@st.cache_data
 def display_selected_labels(adjusted_object_sizes, toggle):
     cmap = random_label_cmap()
     labels_int = [indice for value, indice in adjusted_object_sizes]
@@ -192,7 +192,7 @@ def display_selected_labels(adjusted_object_sizes, toggle):
     # Display the figure in Streamlit
     st.pyplot(fig, use_container_width=True, clear_figure=True)
     return x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects
-@st.cache_data
+#@st.cache_data
 def plot_hist(object_sizes, num_objects):
     object_sizes = [size for size, i in object_sizes]
     area_range = max(object_sizes) - min(object_sizes)
@@ -214,7 +214,7 @@ def plot_hist(object_sizes, num_objects):
     plt.tight_layout()
     # Display the Matplotlib figure in Streamlit
     st.pyplot(fig, use_container_width=True, clear_figure=True)
-@st.cache_data
+#@st.cache_data
 def calculate_distance(x1, y1, x2, y2):
     # Calculate the horizontal and vertical differences
     dx = x2 - x1
@@ -222,7 +222,7 @@ def calculate_distance(x1, y1, x2, y2):
     # Use the Pythagorean theorem to calculate the distance
     distance = math.sqrt(dx ** 2 + dy ** 2)
     return distance
-@st.cache_data
+#@st.cache_data
 def extract_non_outliers(list):
     # Calculate the quartiles
     q1 = np.percentile(list, 25)
