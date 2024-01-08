@@ -125,24 +125,24 @@ def find_scale(selected_template, img, template1, template2):
     return length
 
 @st.cache_data
-def stardist(file, PBS, NMS, model_change):
+def stardist(file, PBS, NMS):
 
-    if model_change == 'Basic':
-        model = StarDist2D.from_pretrained('2D_versatile_fluo')
-    elif model_change == 'Fine_Tuned':
-        model = StarDist2D(None, name = "FineTuned_v3", basedir='Models') # loading model
-    elif model_change == 'Self_Trained':
-        model = StarDist2D(None, name = "Self_Trained", basedir='Models') # loading model
+    # if model_change == 'Basic':
+    #     model = StarDist2D.from_pretrained('2D_versatile_fluo')
+    # elif model_change == 'Fine_Tuned':
+    #     model = StarDist2D(None, name = "FineTuned_v3", basedir='Models') # loading model
+    # elif model_change == 'Self_Trained':
 
     try:
+        model = StarDist2D(None, name="Self_Trained", basedir='Models')  # loading model
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
     except Exception as e:
-        if model_change == 'Basic':
-            model = StarDist2D.from_pretrained('2D_versatile_fluo')
-        elif model_change == 'Fine_Tuned':
-            model = StarDist2D(None, name="FineTuned_v3", basedir='Models')  # loading model
-        elif model_change == 'Self_trained':
-            model = StarDist2D(None, name="Self_Trained", basedir='Models')  # loading model
+        # if model_change == 'Basic':
+        #     model = StarDist2D.from_pretrained('2D_versatile_fluo')
+        # elif model_change == 'Fine_Tuned':
+        #     model = StarDist2D(None, name="FineTuned_v3", basedir='Models')  # loading model
+        # elif model_change == 'Self_trained':
+        model = StarDist2D(None, name="Self_Trained", basedir='Models')  # loading model
 
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
                                                                                           nms_thresh=NMS)  # predicting masks
@@ -416,7 +416,7 @@ try:
 
                 st.write("Switch values in Size selected Prediction")
                 area_diameter = st.toggle('Turn off for Diameter | Turn on for Area')
-                model_change = st.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
+                # model_change = st.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
 
                 # st.image(preprocessed_image, use_column_width=True)
 
@@ -435,7 +435,7 @@ try:
                 # predicting labels
                 # st.write(preprocessed_image)
                 # st.write(st.session_state['PBS'], st.session_state['NMS'])
-                stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], model_change)
+                stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'])
                 # labels,details = stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'])
 
                 # st.write("This is Labels:",labels)
