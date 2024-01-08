@@ -97,22 +97,11 @@ def find_scale(selected_template, img, template1, template2):
     st.write(f'The length of the scale bar is {length} pixels.')
     return length
 #@st.cache_data
-def stardist(file, PBS, NMS, model_change):
-    if model_change == 'Basic':
-        model = StarDist2D.from_pretrained('2D_versatile_fluo')
-    elif model_change == 'Fine_Tuned':
-        model = StarDist2D(None, name = "FineTuned_v3", basedir='Models') # loading model
-    elif model_change == 'Self_Trained':
-        model = StarDist2D(None, name = "Self_Trained", basedir='Models') # loading model
+def stardist(file, PBS, NMS, model):
     try:
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
     except Exception as e:
-        if model_change == 'Basic':
-            model = StarDist2D.from_pretrained('2D_versatile_fluo')
-        elif model_change == 'Fine_Tuned':
-            model = StarDist2D(None, name="FineTuned_v3", basedir='Models')  # loading model
-        elif model_change == 'Self_trained':
-            model = StarDist2D(None, name="Self_Trained", basedir='Models')  # loading model
+
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
                                                                                           nms_thresh=NMS)  # predicting masks
 #@st.cache_data
@@ -300,112 +289,116 @@ st.sidebar.subheader("Select a Template")
 st.sidebar.image(template1, caption='Template 1')
 st.sidebar.image(template2, caption='Template 2')
 selected_template = st.sidebar.radio("Select a Template", ["Template 1", "Template 2"])
-try:
-    tab1, tab2 = st.tabs(["\u2001 \u2001\u2001 Analysis \u2001 \u2001 \u2001 ", "Results"])
-    with tab1:
-        st.title("Image Processing App")
-        if uploaded_image is not None:
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.subheader("Uploaded Image")
-                preprocessed_image = process_image(uploaded_image)
-                st.session_state['scale_length'] = find_scale(selected_template, preprocessed_image, template1, template2)
-                st.write("Switch values in Size selected Prediction")
-                area_diameter = st.toggle('Turn off for Diameter | Turn on for Area')
-                model_change = st.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
-                # st.image(preprocessed_image, use_column_width=True)
+# try:
+tab1, tab2 = st.tabs(["\u2001 \u2001\u2001 Analysis \u2001 \u2001 \u2001 ", "Results"])
+with tab1:
+    st.title("Image Processing App")
+    if uploaded_image is not None:
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.subheader("Uploaded Image")
+            preprocessed_image = process_image(uploaded_image)
+            st.session_state['scale_length'] = find_scale(selected_template, preprocessed_image, template1, template2)
+            st.write("Switch values in Size selected Prediction")
+            area_diameter = st.toggle('Turn off for Diameter | Turn on for Area')
+            model_change = st.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
+            # st.image(preprocessed_image, use_column_width=True)
 
 
-            with col2:
-                st.subheader("Prediction")
-                # Input widgets in the sidebar
-                st.sidebar.header("Input Parameters")
-                st.session_state['PBS'] = st.sidebar.slider("Probability Score", 0.0, 1.0, 0.3)
-                st.session_state['NMS'] = st.sidebar.slider("NMS Score", 0.0, 1.0, 0.2)
-                # param3 = st.sidebar.slider("Parameter 3", 0.0, 1.0, 0.5)
-                # param4 = st.sidebar.slider("Parameter 4", 0.0, 1.0, 0.5)
-                st.session_state['mikro_scale'] = st.sidebar.number_input("Scale in µm", value=5)
-                # predicting labels
-                # st.write(preprocessed_image)
-                # st.write(st.session_state['PBS'], st.session_state['NMS'])
-                stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], model_change)
-                # labels,details = stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'])
-                # st.write("This is Labels:",labels)
-                object_sizes, num_objects = display_prediction(st.session_state['scale_length'], st.session_state['mikro_scale'])
-            st.subheader("Size Distribution")
-            st.markdown("You can adjust the number of bins to change the resolution of the size distribution and the range of object sizes to be displayed.")
-            max_bin = int(len(st.session_state['details']['points']))
-            max_x = max(object_sizes)
-            min_x = min(object_sizes)
-            step = int(max_bin / 2.5)
-            st.session_state['bins'] = st.slider("Bins", 1, max_bin, step)
-            st.session_state['x_range'] = st.slider("Size Range in µm^2",value=[min_x,max_x])
-            adjusted_object_sizes = []
-            for i, size in enumerate(object_sizes):
-                if st.session_state['x_range'][0] <= size <= st.session_state['x_range'][1]:
-                    adjusted_object_sizes.append((size, i +1))
-            plot_hist(adjusted_object_sizes, num_objects)
-            with col3:
-                st.subheader("Size Selected Prediction")
-                x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects = display_selected_labels(adjusted_object_sizes, area_diameter)
-        else:
-            st.write("Upload an image on the sidebar.")
-    with tab2:
-        st.title("Image Processing App")
-        if uploaded_image is not None:
-            # st.write(details['coord'].shape)
-            # st.write(x_contour_select)
-            object_diameters = []
-            object_diameters_average = []
-            object_diameters_std = []
-            # iterating through the centerpoints and contours of the already filtered label data
-            for i, (x_center, y_center) in enumerate(zip(x_center_select, y_center_select)):
-                diameters = []
-                for j, (x_contour, y_contour) in enumerate(zip(x_contour_select[i], y_contour_select[i])):
-                    diameter = 2*calculate_distance(x_center, y_center, x_contour, y_contour)
-                    diameters.append(1/(st.session_state['scale_length']/(st.session_state['mikro_scale']*diameter)))
-                object_diameters.append(diameters)
-                object_diameters_average.append(np.average(diameters))
-                object_diameters_std.append(np.std(diameters))
-            # get the object_size values from given touple_list
-            values_adjusted_object_sizes = [values for values, indices in adjusted_object_sizes]
-            values_adjusted_object_sizes,filtered_ind = extract_non_outliers(values_adjusted_object_sizes)
-            filtered_std = []
-            filtered_object_diameters_average = []
-            for i in filtered_ind:
-                filtered_object_diameters_average.append(object_diameters_average[i])
-                filtered_std.append(object_diameters_std[i])
-            column1, column2, column3 = st.columns(3)
-            with column1:
-                # Display a bar plot
-                fig, ax = plt.subplots()
-                x = np.arange(len(values_adjusted_object_sizes))
-                plt.bar(x, filtered_object_diameters_average, yerr=filtered_std, align='center', alpha=0.5, ecolor='black', capsize=2, error_kw={'elinewidth': 0.8})
-                plt.xlabel('Object Nr.')
-                plt.ylabel('Diameter in µm')
-                plt.title('Average IB Diameter in µm')
-                plt.grid()
-                st.pyplot(fig)
-            with column2:
-                # st.write("This is len(adjusted_object_sizes: ", len(values_adjusted_object_sizes), "this is len(filtered_std): ", len(filtered_std))
-                # Display a bar plot
-                fig, ax = plt.subplots()
-                x = np.arange(len(object_diameters_average))
-                plt.scatter(values_adjusted_object_sizes, filtered_std)
-                plt.xlabel('Object Areas in µm^2')
-                plt.ylabel('Standard Deviation of Diameter Distribution in a Object in µm')
-                plt.title('Circularity to Area Plot')
-                plt.grid()
-                st.pyplot(fig)
-            # with column3:
-            #
-            #     agglomeration_degree(filtered_labeled_objects, preprocessed_image)
-            overall_average = np.average(object_diameters_average)
-            overall_std = np.std(object_diameters_average)
-            st.write("Overall Average IB Diameter in µm = ", overall_average)
-            st.write("Overall STD = ", overall_std)
-        else:
-            st.write("Upload an image on the sidebar.")
-except PermissionError as e:
-    st.write("Please reload the page")
-    st.write(e)
+        with col2:
+            st.subheader("Prediction")
+            # Input widgets in the sidebar
+            st.sidebar.header("Input Parameters")
+            st.session_state['PBS'] = st.sidebar.slider("Probability Score", 0.0, 1.0, 0.3)
+            st.session_state['NMS'] = st.sidebar.slider("NMS Score", 0.0, 1.0, 0.2)
+
+            st.session_state['mikro_scale'] = st.sidebar.number_input("Scale in µm", value=5)
+
+            if model_change == 'Basic':
+                model = StarDist2D.from_pretrained('2D_versatile_fluo')
+            elif model_change == 'Fine_Tuned':
+                model = StarDist2D(None, name="FineTuned_v3", basedir='Models')  # loading model
+            elif model_change == 'Self_trained':
+                model = StarDist2D(None, name="Self_Trained", basedir='Models')  # loading model
+
+            stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], model_change)
+
+            object_sizes, num_objects = display_prediction(st.session_state['scale_length'], st.session_state['mikro_scale'])
+
+        st.subheader("Size Distribution")
+        st.markdown("You can adjust the number of bins to change the resolution of the size distribution and the range of object sizes to be displayed.")
+        max_bin = int(len(st.session_state['details']['points']))
+        max_x = max(object_sizes)
+        min_x = min(object_sizes)
+        step = int(max_bin / 2.5)
+        st.session_state['bins'] = st.slider("Bins", 1, max_bin, step)
+        st.session_state['x_range'] = st.slider("Size Range in µm^2",value=[min_x,max_x])
+        adjusted_object_sizes = []
+        for i, size in enumerate(object_sizes):
+            if st.session_state['x_range'][0] <= size <= st.session_state['x_range'][1]:
+                adjusted_object_sizes.append((size, i +1))
+        plot_hist(adjusted_object_sizes, num_objects)
+        with col3:
+            st.subheader("Size Selected Prediction")
+            x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects = display_selected_labels(adjusted_object_sizes, area_diameter)
+    else:
+        st.write("Upload an image on the sidebar.")
+with tab2:
+    st.title("Image Processing App")
+    if uploaded_image is not None:
+        # st.write(details['coord'].shape)
+        # st.write(x_contour_select)
+        object_diameters = []
+        object_diameters_average = []
+        object_diameters_std = []
+        # iterating through the centerpoints and contours of the already filtered label data
+        for i, (x_center, y_center) in enumerate(zip(x_center_select, y_center_select)):
+            diameters = []
+            for j, (x_contour, y_contour) in enumerate(zip(x_contour_select[i], y_contour_select[i])):
+                diameter = 2*calculate_distance(x_center, y_center, x_contour, y_contour)
+                diameters.append(1/(st.session_state['scale_length']/(st.session_state['mikro_scale']*diameter)))
+            object_diameters.append(diameters)
+            object_diameters_average.append(np.average(diameters))
+            object_diameters_std.append(np.std(diameters))
+        # get the object_size values from given touple_list
+        values_adjusted_object_sizes = [values for values, indices in adjusted_object_sizes]
+        values_adjusted_object_sizes,filtered_ind = extract_non_outliers(values_adjusted_object_sizes)
+        filtered_std = []
+        filtered_object_diameters_average = []
+        for i in filtered_ind:
+            filtered_object_diameters_average.append(object_diameters_average[i])
+            filtered_std.append(object_diameters_std[i])
+        column1, column2, column3 = st.columns(3)
+        with column1:
+            # Display a bar plot
+            fig, ax = plt.subplots()
+            x = np.arange(len(values_adjusted_object_sizes))
+            plt.bar(x, filtered_object_diameters_average, yerr=filtered_std, align='center', alpha=0.5, ecolor='black', capsize=2, error_kw={'elinewidth': 0.8})
+            plt.xlabel('Object Nr.')
+            plt.ylabel('Diameter in µm')
+            plt.title('Average IB Diameter in µm')
+            plt.grid()
+            st.pyplot(fig)
+        with column2:
+            # st.write("This is len(adjusted_object_sizes: ", len(values_adjusted_object_sizes), "this is len(filtered_std): ", len(filtered_std))
+            # Display a bar plot
+            fig, ax = plt.subplots()
+            x = np.arange(len(object_diameters_average))
+            plt.scatter(values_adjusted_object_sizes, filtered_std)
+            plt.xlabel('Object Areas in µm^2')
+            plt.ylabel('Standard Deviation of Diameter Distribution in a Object in µm')
+            plt.title('Circularity to Area Plot')
+            plt.grid()
+            st.pyplot(fig)
+        # with column3:
+        #
+        #     agglomeration_degree(filtered_labeled_objects, preprocessed_image)
+        overall_average = np.average(object_diameters_average)
+        overall_std = np.std(object_diameters_average)
+        st.write("Overall Average IB Diameter in µm = ", overall_average)
+        st.write("Overall STD = ", overall_std)
+    else:
+        st.write("Upload an image on the sidebar.")
+# except PermissionError as e:
+#     st.write("Please reload the page")
+#     st.write(e)
