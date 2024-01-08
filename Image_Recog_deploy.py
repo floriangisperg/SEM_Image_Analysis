@@ -384,7 +384,7 @@ def on_change_test():
 st.set_page_config(layout="wide")
 # Sidebar
 st.sidebar.header("Image Processing")
-uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png", "tif"], )#on_change=on_change_test())
+uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png", "tif"], on_change=on_change_test())
 
 
 # multi scale template matching for finding th size of the scale
@@ -398,9 +398,7 @@ st.sidebar.image(template1, caption='Template 1')
 st.sidebar.image(template2, caption='Template 2')
 selected_template = st.sidebar.radio("Select a Template", ["Template 1", "Template 2"])
 
-st.sidebar.write("Switch values in Size selected Prediction")
-st.session_state['area_diameter'] = st.sidebar.toggle('Turn off for Diameter | Turn on for Area')
-st.session_state['model_change'] = st.sidebar.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
+
 
 
 
@@ -413,7 +411,9 @@ try:
             col1, col2, col3 = st.columns(3)
             with col1:
 
-
+                st.sidebar.write("Switch values in Size selected Prediction")
+                area_diameter = st.sidebar.toggle('Turn off for Diameter | Turn on for Area')
+                model_change = st.sidebar.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'), default)
 
                 st.subheader("Uploaded Image")
 
@@ -439,7 +439,7 @@ try:
                 # predicting labels
                 # st.write(preprocessed_image)
                 # st.write(st.session_state['PBS'], st.session_state['NMS'])
-                stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], st.session_state['model_change'])
+                stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], model_change)
                 # labels,details = stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'])
 
                 # st.write("This is Labels:",labels)
@@ -472,7 +472,7 @@ try:
             with col3:
                 st.subheader("Size Selected Prediction")
 
-                x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects = display_selected_labels(adjusted_object_sizes, st.session_state['area_diameter'])
+                x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects = display_selected_labels(adjusted_object_sizes, area_diameter)
 
 
 
