@@ -143,7 +143,6 @@ def stardist(file, PBS, NMS):
         #     model = StarDist2D(None, name="FineTuned_v3", basedir='Models')  # loading model
         # elif model_change == 'Self_trained':
         model = StarDist2D(None, name="Self_Trained", basedir='Models')  # loading model
-
         st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
                                                                                           nms_thresh=NMS)  # predicting masks
 
