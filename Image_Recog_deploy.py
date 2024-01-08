@@ -96,31 +96,25 @@ def find_scale(selected_template, img, template1, template2):
     st.image(img, caption='Detected scale bar', use_column_width=True, clamp=True)
     st.write(f'The length of the scale bar is {length} pixels.')
     return length
-
-# @st.cache_resource
-def model_select(model_change):
-
+#@st.cache_data
+def stardist(file, PBS, NMS, model_change):
     if model_change == 'Basic':
         model = StarDist2D.from_pretrained('2D_versatile_fluo')
-        return model
-
     elif model_change == 'Fine_Tuned':
-        model = StarDist2D(None, name="FineTuned_v3", basedir='Models')  # loading model
-        return model
-
-    elif model_change == 'Self_trained':
-        model = StarDist2D(None, name="Self_Trained", basedir='Models')  # loading model
-        return model
-
-
-# @st.cache_resource
-def stardist(file, PBS, NMS, model):
-    try:
-        st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
-    except Exception as e:
-
-        st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
-                                                                                          nms_thresh=NMS)  # predicting masks
+        model = StarDist2D(None, name = "FineTuned_v3", basedir='Models') # loading model
+    elif model_change == 'Self_Trained':
+        model = StarDist2D(None, name = "Self_Trained", basedir='Models') # loading model
+    # try:
+    st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
+    # except Exception as e:
+    #     if model_change == 'Basic':
+    #         model = StarDist2D.from_pretrained('2D_versatile_fluo')
+    #     elif model_change == 'Fine_Tuned':
+    #         model = StarDist2D(None, name="FineTuned_v3", basedir='Models')  # loading model
+    #     elif model_change == 'Self_trained':
+    #         model = StarDist2D(None, name="Self_Trained", basedir='Models')  # loading model
+    #     st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
+    #                                                                                       nms_thresh=NMS)  # predicting masks
 #@st.cache_data
 def display_prediction(L_scale, scale):
     # find Contours
@@ -328,16 +322,16 @@ with tab1:
             st.sidebar.header("Input Parameters")
             st.session_state['PBS'] = st.sidebar.slider("Probability Score", 0.0, 1.0, 0.3)
             st.session_state['NMS'] = st.sidebar.slider("NMS Score", 0.0, 1.0, 0.2)
-
+            # param3 = st.sidebar.slider("Parameter 3", 0.0, 1.0, 0.5)
+            # param4 = st.sidebar.slider("Parameter 4", 0.0, 1.0, 0.5)
             st.session_state['mikro_scale'] = st.sidebar.number_input("Scale in µm", value=5)
-
-            model = model_select(model_change)
-
-
-            stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], model)
-
+            # predicting labels
+            # st.write(preprocessed_image)
+            # st.write(st.session_state['PBS'], st.session_state['NMS'])
+            stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], model_change)
+            # labels,details = stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'])
+            # st.write("This is Labels:",labels)
             object_sizes, num_objects = display_prediction(st.session_state['scale_length'], st.session_state['mikro_scale'])
-
         st.subheader("Size Distribution")
         st.markdown("You can adjust the number of bins to change the resolution of the size distribution and the range of object sizes to be displayed.")
         max_bin = int(len(st.session_state['details']['points']))
