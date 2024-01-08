@@ -375,14 +375,15 @@ def agglomeration_degree(filtered_labeled_objects, img):
     st.pyplot(fig)
 
 
-
-
+def on_change_test():
+    st.cache_resource.clear()
+    st.sidebar.write("New_Image")
 #---------------------------------------Start Page----------------------------------------------------------#
 
 st.set_page_config(layout="wide")
 # Sidebar
 st.sidebar.header("Image Processing")
-uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png", "tif"], on_change=st.cache_data.clear())
+uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png", "tif"], on_change=on_change_test())
 
 
 # multi scale template matching for finding th size of the scale
@@ -396,6 +397,9 @@ st.sidebar.image(template1, caption='Template 1')
 st.sidebar.image(template2, caption='Template 2')
 selected_template = st.sidebar.radio("Select a Template", ["Template 1", "Template 2"])
 
+st.sidebar.write("Switch values in Size selected Prediction")
+area_diameter = st.sidebar.toggle('Turn off for Diameter | Turn on for Area')
+model_change = st.sidebar.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
 
 
 
@@ -408,15 +412,15 @@ try:
             col1, col2, col3 = st.columns(3)
             with col1:
 
+
+
                 st.subheader("Uploaded Image")
 
                 preprocessed_image = process_image(uploaded_image)
 
                 st.session_state['scale_length'] = find_scale(selected_template, preprocessed_image, template1, template2)
 
-                st.write("Switch values in Size selected Prediction")
-                area_diameter = st.toggle('Turn off for Diameter | Turn on for Area')
-                model_change = st.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
+
                 # st.image(preprocessed_image, use_column_width=True)
 
 
