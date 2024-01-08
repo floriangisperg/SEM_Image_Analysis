@@ -408,16 +408,15 @@ try:
             col1, col2, col3 = st.columns(3)
             with col1:
 
-                st.write("Switch values in Size selected Prediction")
-                area_diameter = st.toggle('Turn off for Diameter | Turn on for Area')
-                model_change = st.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
-
                 st.subheader("Uploaded Image")
 
                 preprocessed_image = process_image(uploaded_image)
 
                 st.session_state['scale_length'] = find_scale(selected_template, preprocessed_image, template1, template2)
 
+                st.write("Switch values in Size selected Prediction")
+                area_diameter = st.toggle('Turn off for Diameter | Turn on for Area')
+                model_change = st.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
 
                 # st.image(preprocessed_image, use_column_width=True)
 
