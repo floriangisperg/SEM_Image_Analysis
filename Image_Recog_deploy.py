@@ -96,15 +96,23 @@ def find_scale(selected_template, img, template1, template2):
     st.image(img, caption='Detected scale bar', use_column_width=True, clamp=True)
     st.write(f'The length of the scale bar is {length} pixels.')
     return length
-#@st.cache_data
+
+
+
 @st.cache_resource
-def stardist(file, PBS, NMS, model_change):
+def get_model(model_change):
     if model_change == 'Basic':
         model = StarDist2D.from_pretrained('2D_versatile_fluo')
     elif model_change == 'Fine_Tuned':
         model = StarDist2D(None, name = "FineTuned_v3", basedir='Models') # loading model
     elif model_change == 'Self_Trained':
         model = StarDist2D(None, name = "Self_Trained", basedir='Models') # loading model
+    return model
+#@st.cache_data
+# @st.cache_resource
+def stardist(file, PBS, NMS, model_change):
+
+    model = model
     # try:
     st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
     # except Exception as e:
@@ -329,6 +337,7 @@ with tab1:
             # predicting labels
             # st.write(preprocessed_image)
             # st.write(st.session_state['PBS'], st.session_state['NMS'])
+            model_selection = get_model(model_change)
             stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], model_change)
             # labels,details = stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'])
             # st.write("This is Labels:",labels)
