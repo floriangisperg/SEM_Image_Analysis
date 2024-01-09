@@ -112,7 +112,7 @@ def get_model(model_change):
 # @st.cache_resource
 def stardist(file, PBS, NMS, model_change):
 
-    model = model
+    model = model_change
     # try:
     st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
     # except Exception as e:
