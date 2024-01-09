@@ -111,19 +111,12 @@ def get_model(model_change):
 #@st.cache_data
 # @st.cache_resource
 def stardist(file, PBS, NMS, model_change):
+    st.cache_resource.clear()
 
-    model = model_change
+    model = get_model(model_change)
     # try:
     st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
-    # except Exception as e:
-    #     if model_change == 'Basic':
-    #         model = StarDist2D.from_pretrained('2D_versatile_fluo')
-    #     elif model_change == 'Fine_Tuned':
-    #         model = StarDist2D(None, name="FineTuned_v3", basedir='Models')  # loading model
-    #     elif model_change == 'Self_trained':
-    #         model = StarDist2D(None, name="Self_Trained", basedir='Models')  # loading model
-    #     st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS,
-    #                                                                                       nms_thresh=NMS)  # predicting masks
+
 #@st.cache_data
 def display_prediction(L_scale, scale):
     # find Contours
@@ -337,7 +330,6 @@ with tab1:
             # predicting labels
             # st.write(preprocessed_image)
             # st.write(st.session_state['PBS'], st.session_state['NMS'])
-            model_selection = get_model(model_change)
             stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], model_change)
             # labels,details = stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'])
             # st.write("This is Labels:",labels)
