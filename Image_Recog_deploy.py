@@ -117,7 +117,7 @@ def stardist(file, PBS, NMS, model_change):
     # try:
     st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
 
-#@st.cache_data
+# @st.cache_resource
 def display_prediction(L_scale, scale):
     # find Contours
     contour_x = []
@@ -399,8 +399,16 @@ with tab2:
             plt.title('Circularity to Area Plot')
             plt.grid()
             st.pyplot(fig)
-        # with column3:
-        #
+        with column3:
+            fig, ax = plt.subplots()
+            x = np.arange(len(filtered_object_diameters_average))
+            plt.scatter(filtered_object_diameters_average, filtered_std)
+            plt.xlabel('Average Object Diameter in µm')
+            plt.ylabel('Standard Deviation of Diameter Distribution in a Object in µm')
+            plt.title('Circularity to Average Diameter')
+            plt.grid()
+            st.pyplot(fig)
+
         #     agglomeration_degree(filtered_labeled_objects, preprocessed_image)
         overall_average = np.average(object_diameters_average)
         overall_std = np.std(object_diameters_average)
