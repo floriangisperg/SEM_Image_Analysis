@@ -430,10 +430,27 @@ with tab2:
             st.pyplot(fig)
 
         #     agglomeration_degree(filtered_labeled_objects, preprocessed_image)
+
         overall_average = np.average(object_diameters_average)
         overall_std = np.std(object_diameters_average)
         st.write("Overall Average IB Diameter in µm = ", overall_average)
         st.write("Overall STD = ", overall_std)
+
+
+        results_df = pd.DataFrame({'Overall average Diameter': overall_average,'Overall average Diameter STD': overall_std, 'Diameters in µm': filtered_object_diameters_average, 'Areas in µm^2': values_adjusted_object_sizes, 'Diameter Standard Deviation (Metric of Circularity)': filtered_std})
+        st.markdown("Download Results")
+
+        results_df.to_csv(index=False).encode('utf-8')
+
+        csv = results_df.to_csv(index=False).encode('utf-8')
+
+        st.download_button(
+            "Press to Download Results",
+            csv,
+            "Results_.csv",
+            "text/csv",
+            key='download-csv'
+        )
     else:
         st.write("Upload an image on the sidebar.")
 # except PermissionError as e:
