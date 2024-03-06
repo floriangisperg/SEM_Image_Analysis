@@ -438,10 +438,7 @@ with tab2:
         st.write("Overall STD = ", overall_std)
 
 
-        results_df = pd.DataFrame({'Overall average Diameter': overall_average,'Overall average Diameter STD': overall_std, 'Diameters in µm': filtered_object_diameters_average, 'Areas in µm^2': values_adjusted_object_sizes, 'Diameter Standard Deviation (Metric of Circularity)': filtered_std})
-        st.markdown("Download Results")
-
-        results_df.to_csv(index=False).encode('utf-8')
+        results_df = pd.DataFrame({'Overall average Diameter': [overall_average],'Overall average Diameter STD': [overall_std], 'Diameters in µm': filtered_object_diameters_average, 'Areas in µm^2': values_adjusted_object_sizes, 'Diameter Standard Deviation (Metric of Circularity)': filtered_std})
 
         csv = results_df.to_csv(index=False).encode('utf-8')
 
