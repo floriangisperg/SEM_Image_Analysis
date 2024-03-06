@@ -14,8 +14,15 @@ import math
 from scipy.ndimage import label, find_objects
 import plotly.figure_factory as ff
 from collections import Counter
+import gc
+from streamlit_profiler import Profiler
+from memory_profiler import profile
+
+
+
 # Function to process and convert image to .tif and resize if necessary
 #@st.cache_data
+#@profile
 def process_image(uploaded_image):
     # Check if an image is uploaded
     if uploaded_image:
@@ -40,6 +47,7 @@ def process_image(uploaded_image):
             img = cv2.resize(img, (new_width, new_height))
         return img  # Return the temporary file path
 #@st.cache_data
+#@profile
 def find_scale(selected_template, img, template1, template2):
     img = img.astype(np.float32)
     # Select the appropriate template
@@ -100,24 +108,28 @@ def find_scale(selected_template, img, template1, template2):
 
 
 @st.cache_resource
-def get_model(model_change):
-    if model_change == 'Basic':
-        model = StarDist2D.from_pretrained('2D_versatile_fluo')
-    elif model_change == 'Fine_Tuned':
-        model = StarDist2D(None, name = "FineTuned_v3", basedir='Models') # loading model
-    elif model_change == 'Self_Trained':
-        model = StarDist2D(None, name = "Self_Trained", basedir='Models') # loading model
+#@profile
+def get_model():
+    # if model_change == 'Basic':
+    #     model = StarDist2D.from_pretrained('2D_versatile_fluo')
+    # elif model_change == 'Fine_Tuned':
+    #     model = StarDist2D(None, name = "FineTuned_v3", basedir='Models') # loading model
+    # elif model_change == 'Self_Trained':
+    model = StarDist2D(None, name = "Self_Trained", basedir='Models') # loading model
     return model
+
 #@st.cache_data
 # @st.cache_resource
-def stardist(file, PBS, NMS, model_change):
+#@profile
+def stardist(file, PBS, NMS):
     st.cache_resource.clear()
 
-    model = get_model(model_change)
+    model = get_model()
     # try:
     st.session_state['labels'], st.session_state['details'] = model.predict_instances(file, prob_thresh=PBS, nms_thresh=NMS) # predicting masks
 
 # @st.cache_resource
+#@profile
 def display_prediction(L_scale, scale):
     # find Contours
     contour_x = []
@@ -147,6 +159,7 @@ def display_prediction(L_scale, scale):
     st.pyplot(fig, use_container_width=True, clear_figure=True)
     return object_sizes, num_objects
 #@st.cache_data
+#@profile
 def display_selected_labels(adjusted_object_sizes, toggle):
     cmap = random_label_cmap()
     labels_int = [indice for value, indice in adjusted_object_sizes]
@@ -195,6 +208,7 @@ def display_selected_labels(adjusted_object_sizes, toggle):
     st.pyplot(fig, use_container_width=True, clear_figure=True)
     return x_center_select, y_center_select, x_contour_select, y_contour_select, filtered_labeled_objects
 #@st.cache_data
+#@profile
 def plot_hist(object_sizes, num_objects):
     object_sizes = [size for size, i in object_sizes]
     area_range = max(object_sizes) - min(object_sizes)
@@ -217,6 +231,7 @@ def plot_hist(object_sizes, num_objects):
     # Display the Matplotlib figure in Streamlit
     st.pyplot(fig, use_container_width=True, clear_figure=True)
 #@st.cache_data
+#@profile
 def calculate_distance(x1, y1, x2, y2):
     # Calculate the horizontal and vertical differences
     dx = x2 - x1
@@ -225,6 +240,7 @@ def calculate_distance(x1, y1, x2, y2):
     distance = math.sqrt(dx ** 2 + dy ** 2)
     return distance
 #@st.cache_data
+#@profile
 def extract_non_outliers(list):
     # Calculate the quartiles
     q1 = np.percentile(list, 25)
@@ -244,6 +260,7 @@ def extract_non_outliers(list):
             filtered_indices.append(idx)
     return filtered_data, filtered_indices
 # @st.cache_data
+#@profile
 def agglomeration_degree(filtered_labeled_objects, img):
     # 1
     # Apply connected components labeling
@@ -289,10 +306,12 @@ def agglomeration_degree(filtered_labeled_objects, img):
     plt.title('Distribution of Agglomerate Sizes')
     st.pyplot(fig)
 #---------------------------------------Start Page----------------------------------------------------------#
+
+# with Profiler():
 st.set_page_config(layout="wide")
 # Sidebar
 st.sidebar.header("Image Processing")
-uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png", "tif"], on_change=st.cache_data.clear())
+uploaded_image = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png", "tif"], on_change=st.cache_data.clear() and st.session_state.clear())
 # multi scale template matching for finding th size of the scale
 template1 = cv2.imread(r'uncontinuous_scale.tiff', cv2.IMREAD_GRAYSCALE)
 template2 = cv2.imread(r'continuous_scale.tiff', cv2.IMREAD_GRAYSCALE)
@@ -314,7 +333,7 @@ with tab1:
             st.session_state['scale_length'] = find_scale(selected_template, preprocessed_image, template1, template2)
             st.write("Switch values in Size selected Prediction")
             area_diameter = st.toggle('Turn off for Diameter | Turn on for Area')
-            model_change = st.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
+            # model_change = st.selectbox("Which Model?", ('Basic', 'Fine_Tuned', 'Self_Trained'))
             # st.image(preprocessed_image, use_column_width=True)
 
 
@@ -330,7 +349,7 @@ with tab1:
             # predicting labels
             # st.write(preprocessed_image)
             # st.write(st.session_state['PBS'], st.session_state['NMS'])
-            stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'], model_change)
+            stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'])
             # labels,details = stardist(preprocessed_image, st.session_state['PBS'], st.session_state['NMS'])
             # st.write("This is Labels:",labels)
             object_sizes, num_objects = display_prediction(st.session_state['scale_length'], st.session_state['mikro_scale'])
